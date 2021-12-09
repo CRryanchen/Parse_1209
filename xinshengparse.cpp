@@ -104,6 +104,8 @@ void XinShengParse::StartParse()
     {
         // 起始符错误
         qDebug() << "起始符错误!";
+        this->m_ErrInfo += "起始符错误";
+        return ;
     }
 
     FRAME_TYPE frameType;
@@ -135,6 +137,8 @@ void XinShengParse::StartParse()
     {
         // 校验码错误
         qDebug() << "校验码错误!";
+        this->m_ErrInfo += "校验码错误";
+        return ;
     }
     // 判断结束符
     if (tail.EndChar == XINSHENG_PROTOCOL_FRAME_ENDCHAR)
@@ -146,6 +150,8 @@ void XinShengParse::StartParse()
     {
         // 结束符错误
         qDebug() << "结束符错误!";
+        this->m_ErrInfo += "结束符错误";
+        return ;
     }
 
 

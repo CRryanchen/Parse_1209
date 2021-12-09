@@ -38,9 +38,17 @@ MainWindow::MainWindow(QWidget *parent) :
           }
 
           xs.StartParse();
-          ui->outputText->append(xs.m_parsedHead);
-          ui->outputText->append(xs.m_parsedBody);
-          ui->lineEdit->setText(xs.GetLatestKey());
+          if (xs.m_ErrInfo.isEmpty())
+          {
+              ui->outputText->append(xs.m_parsedHead);
+              ui->outputText->append(xs.m_parsedBody);
+              ui->lineEdit->setText(xs.GetLatestKey());
+          }
+          else
+          {
+              ui->statusBar->showMessage(xs.m_ErrInfo, 4000);// 状态栏显示错误信息
+          }
+
       }
       else if (ui->comboBox->currentText() == "上海奉贤")
       {

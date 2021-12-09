@@ -44,6 +44,7 @@ public:
 
     QString m_parsedHead;           // 解析后的报文头数据
     QString m_parsedBody;           // 解析后的报文体数据
+    QString m_ErrInfo;              // 错误信息
 
 public:
     XinShengParse(QString &inputData, QObject *parent = 0);
