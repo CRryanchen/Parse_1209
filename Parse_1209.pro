@@ -26,3 +26,5 @@ HEADERS  += mainwindow.h \
     qaesencryption.h
 
 FORMS    += mainwindow.ui
+
+RC_ICONS = 3.ico
