@@ -44,8 +44,7 @@ static const quint16 crc16Table[] =
 template<typename T>
 QString FormatOutput(const QString &str, const T &data, bool endline = false)
 {
-//    if (str.size() >= 6)
-    if (str.toUtf8().size() / 3 > 6)
+    if (str.toLocal8Bit().size() / 2 > 6)
     {
         return QString().sprintf("%s\t：%0*x", str.toUtf8().data(), sizeof(data) * 2, data) + QString(endline ? "\n" : "");
     }
@@ -67,8 +66,7 @@ QString FormatOutput(const QString &str, const uint8_t &data1, const uint8_t &da
 
 QString FormatOutput(const QString &str, const uint8_t &year, const uint8_t &month, const uint8_t &day, const uint8_t &hour, const uint8_t &min, const uint8_t &sec)
 {
-//    if (str.size() >= 6)
-    if (str.toUtf8().size() / 3 > 6)
+    if (str.toLocal8Bit().size() / 2 > 6)
     {
         return QString().sprintf("%s\t：%0*x/%0*x/%0*x %0*x:%0*x:%0*x\n", str.toUtf8().data(), sizeof(year) * 2, year, sizeof(month) * 2, month, sizeof(day) * 2, day, sizeof(hour) * 2, hour, sizeof(min) * 2, min, sizeof(sec) * 2, sec);
     }
@@ -493,7 +491,6 @@ void XinShengParse::ParseSingleReportBody()
     QAESEncryption encryption(QAESEncryption::AES_128, QAESEncryption::ECB);
 
     qDebug() << this->m_defaultKey;
-    qDebug() << this->GetParseKey();
     QByteArray decodedText = encryption.decode(this->m_frameBody, this->GetParseKey());
     uint8_t *pArray = NULL;
 

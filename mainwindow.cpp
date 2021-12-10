@@ -11,20 +11,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->btnStart, &QPushButton::clicked, [=](){
-
-//        char buf[1024];
-//        char buf1[1024];
-//        QString s;
-//        sprintf(buf, "%-*s:\n", 5, "你好");
-//        sprintf(buf1, "%-*s:\n", 5, "1234");
-//        s.append(QString::fromLocal8Bit(buf));
-//        s.append(QString::fromLocal8Bit(buf1));
-//        qDebug() << s;
-//        qDebug() << s.toLocal8Bit().data();
-//        ui->outputText->append(s.toLocal8Bit().data());
-//        ui->outputText->append(s.toUtf8().data());
-
-
       QString inputString = ui->inputText->toPlainText();
       if (inputString.isEmpty())
       {
