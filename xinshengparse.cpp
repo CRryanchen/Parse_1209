@@ -763,8 +763,6 @@ void XinShengParse::ParseSetCommParamBody()
     memcpy((uint8_t *)&body.IPAddress[0][0], pArray, this->m_frameBody.size() - PADDING_LENGTH(XINSHENG_PROTOCOL_SET_COMMUNICATION_PARAM_DATA));
     temp += "解密密钥\t\t：" + GetParseKey().toHex() + "\n";
 
-    this->m_parsedBody += temp;
-
     temp += FormatOutput<uint32_t>("主服务器IP地址", *(uint32_t *)&body.IPAddress[0][0]) + QString().sprintf("(%d.%d.%d.%d)\n", body.IPAddress[0][0], body.IPAddress[0][1], body.IPAddress[0][2], body.IPAddress[0][3]);
     temp += FormatOutput<uint32_t>("备用服务器1IP地址", *(uint32_t *)&body.IPAddress[1][0]) + QString().sprintf("(%d.%d.%d.%d)\n", body.IPAddress[1][0], body.IPAddress[1][1], body.IPAddress[1][2], body.IPAddress[1][3]);
     temp += FormatOutput<uint32_t>("备用服务器2IP地址", *(uint32_t *)&body.IPAddress[2][0]) + QString().sprintf("(%d.%d.%d.%d)\n", body.IPAddress[2][0], body.IPAddress[2][1], body.IPAddress[2][2], body.IPAddress[2][3]);
@@ -821,7 +819,7 @@ void XinShengParse::ParseSetReportCycleBody()
         break;
     }
 
-    temp += QString().sprintf("上报时间\t\t：%02d:%02d:%02d\n", body.ReportTime[0], body.ReportTime[1], body.ReportTime[2]);
+    temp += QString().sprintf("上报时间\t\t：%02d:%02d:%02d(只适用于每N天上报)\n", body.ReportTime[0], body.ReportTime[1], body.ReportTime[2]);
     temp += FormatOutput<uint16_t>("上报周期", body.CycleValue) +  QString().sprintf("(%hd)\n", body.CycleValue);
     temp += FormatOutput<uint16_t>("数据采集间隔", body.DataInvert);
 
