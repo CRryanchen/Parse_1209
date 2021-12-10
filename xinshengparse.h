@@ -74,6 +74,7 @@ public:
 
 private:
     void ComandTypePrint(const char *printMsg);
+    QString CheckWarningThresholdMask(uint32_t mask);
 
 signals:
 

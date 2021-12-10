@@ -289,8 +289,7 @@ XinShengParse::COMMAND_TYPE XinShengParse::ParseHead(XinShengParse::FRAME_TYPE &
 {
     QString temp = 0;
 
-//    this->m_defaultKey = "QW";
-    this->m_defaultKey = "QC";
+    this->m_defaultKey = "QW";
     qDebug() << "设置初始密钥";
 
 
@@ -849,27 +848,29 @@ void XinShengParse::ParseSetWarningThresholdBody()
         qDebug() << hex << pArray[i];
     }
     memcpy((uint8_t *)&body.MaskCode, pArray, this->m_frameBody.size() - PADDING_LENGTH(XINSHENG_PROTOCOL_SET_WARNING_THRESEHOLD_DATA));
+    temp += "解密密钥\t\t：" + GetParseKey().toHex() + "\n";
 
-    temp += FormatOutput<uint32_t>("掩码", body.MaskCode) + "(" + QString::number(body.MaskCode, 2) +")";
-    temp += FormatOutput<uint32_t>("最大剩余金额", body.MaxSurplusMoney) + QString().sprintf("(%d.%d)\n", body.MaxSurplusMoney / 100, body.MaxSurplusMoney % 100);
-    temp += FormatOutput<uint32_t>("剩余金额一级限值", body.PriceSurplusValue) + QString().sprintf("(%d.%d)\n", body.PriceSurplusValue / 100, body.PriceSurplusValue % 100);
-    temp += FormatOutput<uint32_t>("剩余金额二级限值", body.PriceOverrunValue) + QString().sprintf("(%d.%d)\n", body.PriceOverrunValue / 100, body.PriceOverrunValue % 100);
-    temp += FormatOutput<uint16_t>("过载", body.SuperFlowTime) + QString().sprintf("(%d)\n", body.SuperFlowTime);
-    temp += FormatOutput<uint16_t>("异常小", body.LittleFlowTime) + QString().sprintf("(%d)\n", body.LittleFlowTime);
-    temp += FormatOutput<uint16_t>("温度低限值", body.TempLowValue) + QString().sprintf("(%d.%d)\n", body.TempLowValue / 100, body.TempLowValue % 100);
-    temp += FormatOutput<uint16_t>("温度高限值", body.TempHightValue) + QString().sprintf("(%d.%d)\n", body.TempHightValue / 100, body.TempHightValue % 100);
-    temp += FormatOutput<uint16_t>("压力下限", body.PressureLowValue) + QString().sprintf("(%d.%d)\n", body.PressureLowValue / 10, body.PressureLowValue % 10);
-    temp += FormatOutput<uint16_t>("压力上限", body.PressureHighValue) + QString().sprintf("(%d.%d)\n", body.PressureHighValue / 10, body.PressureHighValue % 10);
-    temp += FormatOutput<uint16_t>("持续流量时间", body.ContinuedFlowTime) + QString().sprintf("(%d)\n", body.ContinuedFlowTime);
-    temp += FormatOutput<uint8_t>("长时间未用", body.LongTimeUnused) + QString().sprintf("(%d)\n", body.LongTimeUnused);
-    temp += FormatOutput<uint32_t>("直通气量", body.DirectGas) + QString().sprintf("(%d.%d)\n", body.DirectGas / 100, body.DirectGas % 100);
-    temp += FormatOutput<uint16_t>("内部电池一级报警限值", *(uint16_t *)&body.LiPower[0]) + QString().sprintf("(%d.%d)\n", body.LiPower[0] / 100, body.LiPower[0] % 100);
-    temp += FormatOutput<uint16_t>("内部电池二级报警限值", *(uint16_t *)&body.LiPower[1]) + QString().sprintf("(%d.%d)\n", body.LiPower[1] / 100, body.LiPower[1] % 100);
-    temp += FormatOutput<uint16_t>("外部电池一级报警限值", *(uint16_t *)&body.DryPower[0]) + QString().sprintf("(%d.%d)\n", body.DryPower[0] / 100, body.DryPower[0] % 100);
-    temp += FormatOutput<uint16_t>("外部电池二级报警限值", *(uint16_t *)&body.DryPower[1]) + QString().sprintf("(%d.%d)\n", body.DryPower[1] / 100, body.DryPower[1] % 100);
-    temp += FormatOutput<uint16_t>("地震限值", *(uint16_t *)&body.Earthquake[0]) + "暂未使用\n";
+    temp += FormatOutput<uint32_t>("掩码", body.MaskCode) + "(" + QString::number(body.MaskCode, 2) + ")\n";
+    temp += "掩码对应的事件\t：(" + this->CheckWarningThresholdMask(body.MaskCode) + ")\n" ;
+    temp += FormatOutput<uint32_t>("最大剩余金额", body.MaxSurplusMoney) + QString().sprintf("(￥%d.%02d)\n", body.MaxSurplusMoney / 100, body.MaxSurplusMoney % 100);
+    temp += FormatOutput<uint32_t>("剩余金额一级限值", body.PriceSurplusValue) + QString().sprintf("(￥%d.%02d)\n", body.PriceSurplusValue / 100, body.PriceSurplusValue % 100);
+    temp += FormatOutput<uint32_t>("剩余金额二级限值", body.PriceOverrunValue) + QString().sprintf("(￥%d.%02d)\n", body.PriceOverrunValue / 100, body.PriceOverrunValue % 100);
+    temp += FormatOutput<uint16_t>("过载", body.SuperFlowTime) + QString().sprintf("(%ds)\n", body.SuperFlowTime);
+    temp += FormatOutput<uint16_t>("异常小", body.LittleFlowTime) + QString().sprintf("(%dh)\n", body.LittleFlowTime);
+    temp += FormatOutput<uint16_t>("温度低限值", body.TempLowValue) + QString().sprintf("(%d.%02d℃)\n", body.TempLowValue / 100, body.TempLowValue % 100);
+    temp += FormatOutput<uint16_t>("温度高限值", body.TempHightValue) + QString().sprintf("(%d.%02d℃)\n", body.TempHightValue / 100, body.TempHightValue % 100);
+    temp += FormatOutput<uint16_t>("压力下限", body.PressureLowValue) + QString().sprintf("(%d.%02dkPa)\n", body.PressureLowValue / 10, body.PressureLowValue % 10);
+    temp += FormatOutput<uint16_t>("压力上限", body.PressureHighValue) + QString().sprintf("(%d.%02dkPa)\n", body.PressureHighValue / 10, body.PressureHighValue % 10);
+    temp += FormatOutput<uint16_t>("持续流量时间", body.ContinuedFlowTime) + QString().sprintf("(%dh)\n", body.ContinuedFlowTime);
+    temp += FormatOutput<uint8_t>("长时间未用", body.LongTimeUnused) + QString().sprintf("(%dd)\n", body.LongTimeUnused);
+    temp += FormatOutput<uint32_t>("直通气量", body.DirectGas) + QString().sprintf("(%d.%02dm³)\n", body.DirectGas / 100, body.DirectGas % 100);
+    temp += FormatOutput<uint16_t>("内部电池一级报警限值", *(uint16_t *)&body.LiPower[0]) + QString().sprintf("(%d.%02dV)\n", body.LiPower[0] / 100, body.LiPower[0] % 100);
+    temp += FormatOutput<uint16_t>("内部电池二级报警限值", *(uint16_t *)&body.LiPower[1]) + QString().sprintf("(%d.%02dV)\n", body.LiPower[1] / 100, body.LiPower[1] % 100);
+    temp += FormatOutput<uint16_t>("外部电池一级报警限值", *(uint16_t *)&body.DryPower[0]) + QString().sprintf("(%d.%02dV)\n", body.DryPower[0] / 100, body.DryPower[0] % 100);
+    temp += FormatOutput<uint16_t>("外部电池二级报警限值", *(uint16_t *)&body.DryPower[1]) + QString().sprintf("(%d.%02dV)\n", body.DryPower[1] / 100, body.DryPower[1] % 100);
+    temp += FormatOutput<uint16_t>("地震限值", *(uint16_t *)&body.Earthquake[0]) + "(暂未使用)\n";
     // 地震
-    temp += FormatOutput<uint16_t>("长时间未通信", body.LongTimeUnconnect);
+    temp += FormatOutput<uint16_t>("长时间未通信", body.LongTimeUnconnect) + QString().sprintf("(%dd)\n", body.LongTimeUnconnect);
     temp += FormatOutput("保留位", body.Reserve[0], body.Reserve[1]);
 
     this->m_parsedBody += temp;
@@ -937,4 +938,84 @@ void XinShengParse::setUseDefaultKey(bool res)
 void XinShengParse::ComandTypePrint(const char *printMsg)
 {
     this->m_parsedBody += QString().sprintf("---------------%s-----------------\n", printMsg);
+}
+
+QString XinShengParse::XinShengParse::CheckWarningThresholdMask(uint32_t mask)
+{
+    QString res = "设置";
+
+    if (mask & (0x01 << 0))
+    {
+        res += QString("最大剩余金额 ");
+    }
+    if (mask & (0x01 << 1))
+    {
+        res += QString("余量预警额度（一级） ");
+    }
+    if (mask & (0x01 << 2))
+    {
+        res += QString("余量预警额度（二级） ");
+    }
+    if (mask & (0x01 << 3))
+    {
+        res += QString("过载流量时间限制 ");
+    }
+    if (mask & (0x01 << 4))
+    {
+        res += QString("异常小流量时间限制 ");
+    }
+    if (mask & (0x01 << 5))
+    {
+        res += QString("温度下限 ");
+    }
+    if (mask & (0x01 << 6))
+    {
+        res += QString("温度上限 ");
+    }
+    if (mask & (0x01 << 7))
+    {
+        res += QString("压力下限 ");
+    }
+    if (mask & (0x01 << 8))
+    {
+        res += QString("压力上限 ");
+    }
+    if (mask & (0x01 << 9))
+    {
+        res += QString("持续流量时间限制 ");
+    }
+    if (mask & (0x01 << 10))
+    {
+        res += QString("长期未使用时间限制 ");
+    }
+    if (mask & (0x01 << 11))
+    {
+        res += QString("直通累计流量限制 ");
+    }
+    if (mask & (0x01 << 12))
+    {
+        res += QString("内部电池一级报警限制 ");
+    }
+    if (mask & (0x01 << 13))
+    {
+        res += QString("内部电池二级报警限制 ");
+    }
+    if (mask & (0x01 << 14))
+    {
+        res += QString("外部电池一级报警限制 ");
+    }
+    if (mask & (0x01 << 15))
+    {
+        res += QString("外部电池二级报警限制 ");
+    }
+    if (mask & (0x01 << 16))
+    {
+        res += QString("地震限值 ");
+    }
+    if (mask & (0x01 << 17))
+    {
+        res += QString("失联天数 ");
+    }
+
+    return res;
 }
