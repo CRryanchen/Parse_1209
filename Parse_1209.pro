@@ -23,7 +23,8 @@ HEADERS  += mainwindow.h \
     fengxianparse.h \
     xinsheng.h \
     xinshengparse.h \
-    qaesencryption.h
+    qaesencryption.h \
+    qianwei.h
 
 FORMS    += mainwindow.ui
 
