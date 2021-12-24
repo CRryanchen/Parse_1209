@@ -60,6 +60,27 @@ MainWindow::MainWindow(QWidget *parent) :
 
       qDebug() << ui->comboBox->currentText();
 
+
+    });
+
+    connect(ui->outputText, &QTextBrowser::cursorPositionChanged, this, [=](){
+        QList<QTextEdit::ExtraSelection> extraSelections;
+
+//        if (!isReadOnly())
+        {
+            QTextEdit::ExtraSelection selection;
+
+            QColor lineColor = QColor(Qt::red).lighter(160);
+
+            selection.format.setBackground(lineColor);
+            selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+            selection.cursor = ui->outputText->textCursor();
+            selection.cursor.clearSelection();
+            extraSelections.append(selection);
+        }
+
+        ui->outputText->setExtraSelections(extraSelections);
+
     });
 }
 

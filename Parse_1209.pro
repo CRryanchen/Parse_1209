@@ -27,4 +27,6 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
+CONFIG += C++11
+
 RC_ICONS = 3.ico
