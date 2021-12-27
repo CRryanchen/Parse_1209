@@ -112,11 +112,21 @@ public:
     void StartParse(void);
     COMMAND_TYPE ParseHead(FRAME_TYPE &frameType, TRANS_DIRECTION &transDirection);
 
+    void ParseSetBillingPlanData(void);
+    void ParseSetBillingPlanRspData(void);
+    void ParseSetRemoteValveData(void);
+    void ParseSetRemoteValveRspData(void);
     void ParseCorrectorReportData(void);
+    void ParseCorrectorRechargeData(void);
+    void ParseCorrectorRechargeRspData(void);
+    void ParseSetReportCycleData(void);
 
 private:
+    template<typename T>
+    QString FormatOutput(const QString &str, const T &data, bool endline);
     uint16_t crc16ForModbus(const QByteArray &data);
     void ComandTypePrint(const char *printMsg);
+
 
 signals:
 

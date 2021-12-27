@@ -39,9 +39,9 @@ static const quint16 crc16Table[] =
 };
 
 template<typename T>
-QString FormatOutput(const QString &str, const T &data, bool endline = true)
+QString QianWeiParse::FormatOutput(const QString &str, const T &data, bool endline = true)
 {
-    if (str.toLocal8Bit().size() / 2 > 6)
+    if (str.toLocal8Bit().size() >= 12)
     {
         return QString().sprintf("%s\t：%0*x", str.toUtf8().data(), sizeof(data) * 2, data) + QString(endline ? "\n" : "");
     }
@@ -53,7 +53,7 @@ QString FormatOutput(const QString &str, const T &data, bool endline = true)
 
 QString FormatOutputTime(const QString &str, const uint8_t *time)
 {
-    if (str.toLocal8Bit().size() / 2 > 6)
+    if (str.toLocal8Bit().size()  >= 12)
     {
         return QString().sprintf("%s\t：%02x/%02x/%02x %02x:%02x:%02x\n", str.toUtf8().data(), time[0], time[1], time[2], time[3], time[4], time[5]);
     }
@@ -66,7 +66,7 @@ QString FormatOutputTime(const QString &str, const uint8_t *time)
 
 QString FormatOutputVersion(const QString &str, const uint8_t *version)
 {
-    if (str.toLocal8Bit().size() / 2 > 6)
+    if (str.toLocal8Bit().size() >= 12)
     {
         return QString().sprintf("%s\t：%d%d.%d%d\n", str.toUtf8().data(), version[0] - '0', version[1] - '0', version[2] - '0', version[3] - '0');
     }
@@ -154,7 +154,75 @@ void QianWeiParse::StartParse()
 
     switch(commandType)
         {
+            case QIANWEI_PROTOCOL_SET_REPORT_PERIOD:
+            if(transDirection == QIANWEI_PROTOCOL_TRANS_DIRECTION_P2B)
+            {
+                this->ComandTypePrint("7012——设置上报周期");
+                qDebug() << "This is 7012 from PT";
+                this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_SET_REPORT_PERIOD_DATA));
+                this->ParseSetReportCycleData();
+            }
+            else
+            {
+                this->ComandTypePrint("7012——设置上报周期响应帧");
+                qDebug() << "This is 7012 rsp from BD";
+            }
+            break;
+
+            case QIANWEI_PROTOCOL_SET_BILLING_PLAN:
+            if(transDirection == QIANWEI_PROTOCOL_TRANS_DIRECTION_P2B)
+            {
+                this->ComandTypePrint("7013——设置计费方案");
+                qDebug() << "This is 7013 from PT";
+                this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_SET_BILLING_PLAN_DATA));
+                this->ParseSetBillingPlanData();
+            }
+            else
+            {
+                this->ComandTypePrint("7013——设置计费方案响应帧");
+                qDebug() << "This is 7013 rsp from BD";
+                this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_SET_BILLING_PLAN_RSP_DATA));
+                this->ParseSetBillingPlanRspData();
+            }
+            break;
+
             case QIANWEI_PROTOCOL_REPORT_SINGLE:
+            break;
+
+            case QIANWEI_PROTOCOL_REMORT_VALVE_CONTROL:
+            if(transDirection == QIANWEI_PROTOCOL_TRANS_DIRECTION_P2B)
+            {
+                this->ComandTypePrint("7024——远程阀控");
+                qDebug() << "This is 7024 from PT";
+                this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_DATA));
+                this->ParseSetRemoteValveData();
+            }
+            else
+            {
+                this->ComandTypePrint("7024——远程阀控响应帧");
+                qDebug() << "This is 7024 rsp from BD";
+                this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_RSP_DATA));
+                this->ParseSetRemoteValveRspData();
+            }
+            break;
+
+            case QIANWEI_PROTOCOL_CORRECTOR_RECHARGE:
+            {
+                if (frameType == QIANWEI_PROTOCOL_REQUEST)
+                {
+                    this->ComandTypePrint("1013——修正仪充值");
+                    qDebug() << "This is 1013 from PT";
+                    this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_CORRECTOR_RECHARGE_DATA));
+                    this->ParseCorrectorRechargeData();
+                }
+                else
+                {
+                    this->ComandTypePrint("1013——修正仪充值数据响应帧");
+                    qDebug() << "This is 1013 rsp from BD";
+                    this->m_frameBody = this->m_frameData.mid(sizeof(QIANWEI_PROTOCOL_FRAME_HEADER), sizeof(QIANWEI_PROTOCOL_CORRECTOR_RECHARGE_RSP_DATA));
+                    this->ParseCorrectorRechargeRspData();
+                }
+            }
             break;
 
             case QIANWEI_PROTOCOL_CORRECTOR_REPORT:
@@ -196,7 +264,7 @@ QianWeiParse::COMMAND_TYPE QianWeiParse::ParseHead(QianWeiParse::FRAME_TYPE &fra
     QIANWEI_PROTOCOL_FRAME_HEADER head;
     memcpy((uint8_t *)&head.StartChar, (uint8_t *)this->m_frameHead.data(), this->m_frameHead.size());
 
-    temp += FormatOutput<uint8_t>("帧头", head.StartChar);
+    temp += this->FormatOutput<uint8_t>(QString("帧头"), head.StartChar);
     temp += FormatOutput<uint16_t>("长度", head.FrameLength, false) + QString().sprintf("(%d)\n", head.FrameLength);
     qDebug("%02x", (uint16_t)head.FrameLength);
     temp += FormatOutput<uint8_t>("后续帧", head.HasMore, false) + QString().sprintf("(%s后续帧)\n", head.HasMore?"有":"没有");
@@ -264,6 +332,166 @@ QianWeiParse::COMMAND_TYPE QianWeiParse::ParseHead(QianWeiParse::FRAME_TYPE &fra
 
     this->m_parsedHead = temp;
     return (QianWeiParse::COMMAND_TYPE)head.CommodCode;
+}
+
+void QianWeiParse::ParseSetBillingPlanData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_SET_BILLING_PLAN_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+    temp += this->FormatOutput<uint8_t>("计费模式", body.m_billingMode, false);
+    switch (body.m_billingMode)
+    {
+    case 0x00:
+        temp += QString("(中心计费)\n");
+        break;
+
+    case 0x01:
+        temp += QString("(表端计费)\n");
+        break;
+
+    default:
+        temp += QString("(未定义)\n");
+        break;
+    }
+
+    temp += this->FormatOutput<uint8_t>("阶梯计费周期", body.m_tieredBillingCycle, false);
+    switch (body.m_tieredBillingCycle)
+    {
+    case 0x00:
+        temp += QString("(日阶梯)\n");
+        break;
+
+    case 0x01:
+        temp += QString("(月阶梯)\n");
+        break;
+
+    case 0x02:
+        temp += QString("(双月阶梯)\n");
+        break;
+
+    case 0x03:
+        temp += QString("(季度阶梯)\n");
+        break;
+
+    case 0x04:
+        temp += QString("(年阶梯)\n");
+        break;
+
+    default:
+        temp += QString("(未定义)\n");
+        break;
+    }
+
+    temp += this->FormatOutput<uint8_t>("阶梯阶数", body.m_tieredNumber, false);
+    switch (body.m_tieredNumber)
+    {
+    case 0x00:
+        temp += QString("(无阶梯)\n");
+        break;
+
+    case 0x02:
+        temp += QString("(2阶梯)\n");
+        break;
+
+    case 0x03:
+        temp += QString("(3阶梯)\n");
+        break;
+
+    case 0x04:
+        temp += QString("(4阶梯)\n");
+        break;
+
+    case 0x05:
+        temp += QString("(5阶梯)\n");
+        break;
+
+    case 0x06:
+        temp += QString("(6阶梯)\n");
+        break;
+
+    default:
+        temp += QString("(未定义)\n");
+        break;
+    }
+
+    temp += FormatOutputTime("阶梯计费开始日期", body.m_tieredBillingStartDate);
+    temp += FormatOutputTime("阶梯计费生效日期", body.m_tieredBillingEffectiveDate);
+
+    for (int i = 0; i < 5; i++)
+    {
+        temp += this->FormatOutput<uint32_t>("阶梯气量i", body.m_tieredGasCapacity[i]);
+    }
+
+    for (int i = 0; i < 6; i++)
+    {
+        temp += this->FormatOutput<uint32_t>("阶梯气价i", body.m_tieredGasPrice[i]);
+    }
+    temp += this->FormatOutput<uint16_t>("保留位", body.m_reserve);
+
+    this->m_parsedBody += temp;
+}
+
+void QianWeiParse::ParseSetBillingPlanRspData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_SET_BILLING_PLAN_RSP_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+    temp += this->FormatOutput<uint16_t>("响应码", body.m_ResponseCode);
+    temp += this->FormatOutput<uint16_t>("保留位", body.m_reserve);
+
+    this->m_parsedBody += temp;
+}
+
+void QianWeiParse::ParseSetRemoteValveData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+    temp += this->FormatOutput<uint16_t>("开关阀命令", body.valveCommand, false);
+    switch(body.valveCommand)
+    {
+        case 0X00:
+            temp += "(强制关阀(用户无法打开))\n";
+        break;
+
+        case 0X01:
+            temp += "(开阀)\n";
+        break;
+
+        case 0X02:
+            temp += "(临时关阀(用户可以打开))\n";
+        break;
+    }
+
+    this->m_parsedBody += temp;
+}
+
+void QianWeiParse::ParseSetRemoteValveRspData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_RSP_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+    temp += this->FormatOutput<uint16_t>("响应码", body.m_ResponseCode);
+    temp += this->FormatOutput<uint16_t>("保留位", body.m_reserve);
+
+    this->m_parsedBody += temp;
 }
 
 void QianWeiParse::ParseCorrectorReportData()
@@ -504,6 +732,113 @@ void QianWeiParse::ParseCorrectorReportData()
     this->m_parsedBody += temp;
 }
 
+void QianWeiParse::ParseCorrectorRechargeData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_CORRECTOR_RECHARGE_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+    temp += this->FormatOutput<uint8_t>("计费种类", body.m_BillingType, false);
+    switch (body.m_BillingType)
+    {
+    case 0x00:
+        temp += QString("(金额计费)\n");
+        break;
+    case 0x01:
+        temp += QString("(气量计费)\n");
+        break;
+    default:
+        temp += QString("(未定义的类型)");
+        break;
+    }
+
+//    temp += QString.sprintf("保留位\t：%02x%02x%02x\n", body.m_reserve[0], body.m_reserve[1], body.m_reserve[2]);
+    temp += FormatOutput<uint32_t>("充值总购金额整数", body.m_RechargeTotalPurchaseAmountInt);
+    temp += FormatOutput<uint32_t>("充值总购金额小数", body.m_RechargeTotalPurchaseAmountDec);
+    temp += FormatOutput<uint32_t>("充值总购气量整数", body.m_RechargeTotalGasPurchaseInt);
+    temp += FormatOutput<uint32_t>("充值总购气量小数", body.m_RechargeTotalGasPurchaseDec);
+
+    this->m_parsedBody += temp;
+}
+
+void QianWeiParse::ParseCorrectorRechargeRspData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_CORRECTOR_RECHARGE_RSP_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+    temp += this->FormatOutput<uint16_t>("响应码", body.m_ResponseCode);
+    temp += this->FormatOutput<uint8_t>("计费种类", body.m_BillingType, false);
+    switch (body.m_BillingType)
+    {
+    case 0x00:
+        temp += QString("(金额计费)\n");
+        break;
+    case 0x01:
+        temp += QString("(气量计费)\n");
+        break;
+    default:
+        temp += QString("(未定义的类型)");
+        break;
+    }
+
+//    temp += QString.sprintf("保留位\t：%02x%02x%02x\n", body.m_reserve[0], body.m_reserve[1], body.m_reserve[2]);
+    temp += FormatOutput<uint32_t>("充值总购金额整数", body.m_RechargeTotalPurchaseAmountInt);
+    temp += FormatOutput<uint32_t>("充值总购金额小数", body.m_RechargeTotalPurchaseAmountDec);
+    temp += FormatOutput<uint32_t>("充值总购气量整数", body.m_RechargeTotalGasPurchaseInt);
+    temp += FormatOutput<uint32_t>("充值总购气量小数", body.m_RechargeTotalGasPurchaseDec);
+
+    this->m_parsedBody += temp;
+}
+
+void QianWeiParse::ParseSetReportCycleData()
+{
+    QString temp = 0;
+    uint8_t *pArray = NULL;
+    QIANWEI_PROTOCOL_SET_REPORT_PERIOD_DATA body;
+
+    pArray = (uint8_t *)this->m_frameBody.data();
+    memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
+
+
+    temp += FormatOutput<uint8_t>("上报周期类型", body.ReportyType, false);
+    switch(body.ReportyType)
+    {
+        case 0x01:
+            temp += "(每N分钟上报(单条上报))\n";
+        break;
+
+        case 0x02:
+            temp += "(每N小时上报(单条上报))\n";
+        break;
+
+        case 0x03:
+            temp += "(每N天上报(单条上报))\n";
+        break;
+
+        case 0x04:
+            temp += "(每N小时上报(打包上报))\n";
+        break;
+
+        case 0x05:
+            temp += "(每N天上报(打包上报))\n";
+        break;
+    }
+
+    temp += QString().sprintf("上报时间\t\t：%02d:%02d:%02d(只适用于每N天上报)\n", body.ReportTime[0], body.ReportTime[1], body.ReportTime[2]);
+    temp += FormatOutput<uint16_t>("上报周期", body.CycleValue, false) +  QString().sprintf("(%hd)\n", body.CycleValue);
+    temp += FormatOutput<uint16_t>("数据采集间隔", body.DataInvert);
+    temp += FormatOutput<uint16_t>("保留位", body.reserve);
+
+    this->m_parsedBody += temp;
+}
+
 uint16_t QianWeiParse::crc16ForModbus(const QByteArray &data)
 {
     quint8 buf;
@@ -522,5 +857,6 @@ void QianWeiParse::ComandTypePrint(const char *printMsg)
 {
     this->m_parsedBody += QString().sprintf("---------------%s-----------------\n", printMsg);
 }
+
 
 

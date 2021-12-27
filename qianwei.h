@@ -46,7 +46,7 @@ typedef struct{
     uint8_t    	ReportTime[3];              // 上报时间
     uint16_t    CycleValue;                 // 上报周期值
     uint16_t    DataInvert;                 // 数据采集间隔
-    uint8_t     reserve[2];                 // 数据保留位 2字节
+    uint16_t    reserve;                    // 数据保留位 2字节
 }QIANWEI_PROTOCOL_SET_REPORT_PERIOD_DATA;  //设置上报周期数据域（10字节）
 
 
@@ -60,8 +60,14 @@ typedef struct
     uint8_t     m_tieredBillingEffectiveDate[6];    // 阶梯计费生效日期
     uint32_t    m_tieredGasCapacity[5];     // 阶梯气量
     uint32_t    m_tieredGasPrice[6];        // 阶梯气价
-    uint8_t     m_reserve[2];               // 数据保留位 2字节
-}QIANWEI_PROTOCOL_SET_BILLING_PLAN;
+    uint16_t    m_reserve;                  // 数据保留位 2字节
+}QIANWEI_PROTOCOL_SET_BILLING_PLAN_DATA;
+
+typedef struct
+{
+    uint16_t    m_ResponseCode;             // 响应码
+    uint16_t    m_reserve;                  // 数据保留位 2字节
+}QIANWEI_PROTOCOL_SET_BILLING_PLAN_RSP_DATA;
 
 /*----------------报警阈值设置7014-------------*/
 typedef struct{
@@ -227,6 +233,11 @@ typedef struct{
     uint16_t     valveCommand;				//开关阀命令
 }QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_DATA; //远程阀控数据域(2字节)
 
+typedef struct
+{
+    uint16_t    m_ResponseCode;             // 响应码
+    uint16_t    m_reserve;                  // 数据保留位 2字节
+}QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_RSP_DATA;
 
 /*--------------设置总购和余额7025------------*/
 typedef struct{
@@ -243,6 +254,29 @@ typedef struct{
 
 //}QIANWEI_PROTOCOL_GET_COMMUNICATION_PARAM;
 
+
+
+/*--------------修正仪充值1013------------*/
+typedef struct
+{
+    uint8_t     m_BillingType;                      // 计费种类
+    uint8_t     m_reserve[3];                       // 保留位
+    uint32_t    m_RechargeTotalPurchaseAmountInt;   // 充值总购金额整数
+    uint32_t    m_RechargeTotalPurchaseAmountDec;   // 充值总购金额小数
+    uint32_t    m_RechargeTotalGasPurchaseInt;      // 充值总购气量整数
+    uint32_t    m_RechargeTotalGasPurchaseDec;      // 充值总购气量小数
+}QIANWEI_PROTOCOL_CORRECTOR_RECHARGE_DATA;
+
+typedef struct
+{
+    uint16_t    m_ResponseCode;                     // 响应码
+    uint8_t     m_BillingType;                      // 计费种类
+    uint8_t     m_reserve;                          // 保留位
+    uint32_t    m_RechargeTotalPurchaseAmountInt;   // 充值总购金额整数
+    uint32_t    m_RechargeTotalPurchaseAmountDec;   // 充值总购金额小数
+    uint32_t    m_RechargeTotalGasPurchaseInt;      // 充值总购气量整数
+    uint32_t    m_RechargeTotalGasPurchaseDec;      // 充值总购气量小数
+}QIANWEI_PROTOCOL_CORRECTOR_RECHARGE_RSP_DATA;
 
 
 /*--------------修正仪主动上报数据10e1------------*/
