@@ -30,6 +30,11 @@
         <string>上海奉贤</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>第三方协议</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item row="1" column="1">

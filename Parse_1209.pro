@@ -16,7 +16,8 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     fengxianparse.cpp \
     qaesencryption.cpp \
-    xinshengparse.cpp
+    xinshengparse.cpp \
+    qianweiparse.cpp
 
 HEADERS  += mainwindow.h \
     fengxian.h \
@@ -24,7 +25,8 @@ HEADERS  += mainwindow.h \
     xinsheng.h \
     xinshengparse.h \
     qaesencryption.h \
-    qianwei.h
+    qianwei.h \
+    qianweiparse.h
 
 FORMS    += mainwindow.ui
 

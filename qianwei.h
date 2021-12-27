@@ -1,6 +1,11 @@
 #ifndef QIANWEI_H
 #define QIANWEI_H
 
+#pragma pack(1)
+
+#define QIANWEI_PROTOCOL_FRAME_STARTCHAR           0X68        // 前卫协议起始符
+#define QIANWEI_PROTOCOL_FRAME_ENDCHAR             0X16        // 前卫协议结束符
+
 /*----------------前卫协议报文头-----------------*/
 typedef struct{
     uint8_t  	StartChar;                  //起始符
@@ -13,8 +18,8 @@ typedef struct{
     uint8_t		ICCID[20];                  //ICCID号
     uint8_t     TransferDirection;          //传输方向
     uint8_t     RequestOrRespond;           //请求响应标志位
-    uint8_t     Reserve[2];                 //数据保留位 2字节
-    uint8_t		Encryption[2];              //加密保护
+    uint16_t    Reserve;                    //数据保留位 2字节
+    uint16_t    Encryption;                 //加密保护
     uint16_t    DataAreaLength;             //数据与长度
 }QIANWEI_PROTOCOL_FRAME_HEADER;
 
@@ -87,7 +92,7 @@ typedef struct
     uint32_t    m_standWorkingCondition;    // 标况总量
     uint32_t    m_reserve1;                 // 0xFFFFFFFF 无效
     uint32_t    m_reserve2;                 // 0xFFFFFFFF 无效
-}QIANWEI_REMOTE_WRITE_PARAM;
+}QIANWEI_PROTOCOL_REMOTE_WRITE_PARAM;
 
 /*----------------设置关阀参数7016-------------*/
 typedef struct
@@ -108,10 +113,201 @@ typedef struct
 {
     uint32_t    m_alarmFunctionEnableConfig;    // 报警功能使能配置
     uint32_t    m_reserve;                  // 保留位
-}QIANWEI_PROTOCOL_SET_ALARM_FUNCTION_ENABLE_CONFIG
+}QIANWEI_PROTOCOL_SET_ALARM_FUNCTION_ENABLE_CONFIG;
+
+/*----------------设置事件上传参数7019-------------*/
+typedef struct
+{
+    uint64_t    m_EventUploadParam;             // 事件上传参数
+    uint64_t    m_reserve;                      // 保留位
+}QIANWEI_PROTOCOL_SET_EVENT_UPLOAD_PARAM;
+
+
+/*----------------设置表端基本参数701A-------------*/
+typedef struct
+{
+    uint8_t		m_NewMeterID[20];                       // 表具编号
+    uint32_t    m_PeriodStartReading;                   // 周期起始读数
+    uint32_t    m_MinFlowrate;                          // 最小流量
+    uint32_t    m_MaxFlowrate;                          // 最大流量
+    uint32_t    m_OverloadFlowrate;                     // 过载流量
+    uint32_t    m_TransitionalFlowrate;                 // 分界流量
+    uint32_t    m_StartFlowrate;                        // 始动流量
+    uint32_t    m_IsEnableRecordingFrozenData;          // 是否开启记录冻结数据
+    uint32_t    m_ProductionOrExitFactoryMode;          // 生产模式/出厂模式
+    uint8_t		Reserve[2];                             // 保留位
+}QIANWEI_PROTOCOL_SET_METER_BASE_PARAM;
 
 
 
+/*----------------单条数据上报7021-----------------*/
+typedef struct{
+    uint16_t	MeterType;                  //表具类型
+    uint8_t		MeterReadYear;              //抄表时间
+    uint8_t 	MeterReadMonth;
+    uint8_t 	MeterReadDay;
+    uint8_t		MeterReadHour;
+    uint8_t		MeterReadMin;
+    uint8_t		MeterReadSec;
+    uint8_t		ReportType;                 //上报类型
+    uint8_t		ValveStaus;                 //阀门状态
+    uint32_t	Total_Working_Condition;    //工况总量,保留1位小数,传输时扩大10倍
+    uint32_t	Stand_Working_Condition;    //标况总量,保留1位小数,传输时扩大10倍
+    uint32_t	Standard_Instant_Flow;      //标况瞬时流量
+    int16_t		Temperature;                //温度
+    int16_t		Pressure;                   //压力
+    int32_t		MoneySurplus;               //剩余金额,保留2位小数，传输时扩大100倍
+    uint32_t	Latest_Settle_Reading;      //最新结算读数(表端预付费才上传)
+    uint8_t		Latest_Settle_Timing[6];    //最新结算时间(表端预付费才上传)
+    int32_t		WarmingStatus;              //告警状态
+    int32_t		WarmingStatusReserveBit;    //告警状态保留位
+    int16_t		DryPower;                   //干电池电量,保留2位小数,扩大100倍
+    int16_t		LiPower;                    //锂电池电量,保留2位小数,扩大100倍
+    int16_t		ModuleRSRP;                 //信号质量，保留1位小数，扩大10倍
+    int16_t 	ModuleSNR;                  //信噪比，保留1位小数，扩大10倍
+    int16_t		ModuleEARFCN;               //频点
+    int8_t		ModuleCellId[6];            //基站小区标识
+    int16_t		ModulePhysicalCellId;       //物理小区标识
+    uint8_t		ModuleECL;                  //覆盖等级
+    uint8_t		SoftWareVersion[4];         //固件版本号
+    uint16_t	Reserve;                    //保留位
+}QIANWEI_PROTOCOL_REPORT_SINGLE_DATA;      //单条数据上报数据域(73字节)
 
+
+/*----------------打包数据上报7022-----------------*/
+//表端->平台
+//typedef struct{
+//    uint16_t	MeterType;                  //表具类型
+//    uint8_t		MeterReadYear;              //抄表时间
+//    uint8_t 	MeterReadMonth;
+//    uint8_t 	MeterReadDay;
+//    uint8_t		MeterReadHour;
+//    uint8_t		MeterReadMin;
+//    uint8_t		MeterReadSec;
+//    uint8_t     ReportYear;                 //上报时间
+//    uint8_t     ReportMonth;
+//    uint8_t     ReportDay;
+//    uint8_t     ReportHour;
+//    uint8_t     ReportMin;
+//    uint8_t     ReportSec;
+//    uint8_t		ValveStaus;                 //阀门状态
+//    uint32_t	Total_Working_Condition;    //工况总量,保留1位小数,传输时扩大10倍
+//    uint32_t	Stand_Working_Condition;    //标况总量,保留1位小数,传输时扩大10倍
+//    uint32_t	Standard_Instant_Flow;      //标况瞬时流量
+//    int16_t		Temperature;                //温度
+//    int16_t		Pressure;                   //压力
+//    int32_t		MoneySurplus;               //剩余金额,保留2位小数，传输时扩大100倍
+//    uint32_t	Latest_Settle_Reading;      //最新结算读数(表端预付费才上传)
+//    uint8_t		Latest_Settle_Timing[6];    //最新结算时间(表端预付费才上传)
+//    int32_t		WarmingStatus;              //告警状态
+//    int32_t		WarmingStatusReserveBit;    //告警状态保留位
+//    int16_t		DryPower;                   //干电池电量,保留2位小数,扩大100倍
+//    int16_t		LiPower;                    //锂电池电量,保留2位小数,扩大100倍
+//    int16_t		ModuleRSRP;                 //信号质量，保留1位小数，扩大10倍
+//    int16_t 	ModuleSNR;                  //信噪比，保留1位小数，扩大10倍
+//    int16_t		ModuleEARFCN;               //频点
+//    int8_t		ModuleCellId[6];            //基站小区标识
+//    int16_t		ModulePhysicalCellId;       //物理小区标识
+//    uint8_t		ModuleECL;                  //覆盖等级
+//    uint8_t		SoftWareVersion[4];         //固件版本号
+//    uint16_t	Reserve;                    //保留位
+//}XINSHENG_PROTOCOL_REPORT_PACKAGED_DATA;    // 打包数据上报
+
+
+/*----------------充值7023-----------------*/
+typedef struct
+{
+    uint32_t    m_RechargeTotalPurchaseBalance;     // 充值总购余额
+    uint16_t	Reserve;                            // 保留位
+}QIANWEI_PROTOCOL_RECHARGE;
+
+
+/*---------------远程阀控7024-----------------*/
+typedef struct{
+    uint16_t     valveCommand;				//开关阀命令
+}QIANWEI_PROTOCOL_REMOTE_VALVE_CONTROL_DATA; //远程阀控数据域(2字节)
+
+
+/*--------------设置总购和余额7025------------*/
+typedef struct{
+    uint32_t	TotoalMoney;	//充值总购金额
+    int32_t		LeftMoney;		//剩余金额
+    uint32_t	CurrentPrice;	//当前单价
+    uint8_t		reserve[2];
+}QIANWEI_PROTOCOL_MODIFY_PURCHASE_BALANCE_DATA;		//修改总购余额数据域(14字节)
+
+
+///*--------------获取通讯参数7041------------*/
+//typedef struct
+//{
+
+//}QIANWEI_PROTOCOL_GET_COMMUNICATION_PARAM;
+
+
+
+/*--------------修正仪主动上报数据10e1------------*/
+// 上一天冻结数据结构体
+typedef struct
+{
+    uint8_t         m_Time[4];                      // 上一天冻结数据时间 百年——年——月——日
+    uint32_t        m_MaxPressure;                  // 上一天冻结数据最大压力
+    uint32_t        m_MinPressure;                  // 上一天冻结数据最小压力
+    uint16_t        m_MaxTemp;                      // 上一天冻结数据最大温度
+    uint16_t        m_MinTemp;                      // 上一天冻结数据最小温度
+    uint32_t        m_TotalWorkingConditionInteger; // 上一天冻结数据工况总量整数
+    uint32_t        m_TotalWorkingConditionDecimal; // 上一天冻结数据工况总量小数
+    uint32_t        m_TotalStandardConditionInteger; // 上一天冻结数据标况总量整数
+    uint32_t        m_TotalStandardConditionDecimal; // 上一天冻结数据标况总量小数
+
+}_LastDatFrozenData;
+
+typedef struct
+{
+    uint16_t        m_PackNumberToSend;             // 有多少包需要发送
+    uint16_t        m_Padding1;                      // 填充位
+    uint16_t        m_MeterType;                    // 表具类型
+    uint8_t         m_ReadMeterTime[6];             // 抄表时间
+    _LastDatFrozenData LastDatFrozenData;           // 上一天冻结数据
+    uint8_t         m_ReportType;                   // 上报类型
+    uint8_t         m_BillingType;                  // 计费种类
+    uint8_t         m_BillingNature;                // 计费性质
+    uint8_t         m_ValveStatus;                  // 阀门状态
+    uint32_t        m_TotalWorkingConditionInteger; // 工况总量整数
+    uint32_t        m_TotalWorkingConditionDecimal; // 工况总量小数
+    uint32_t        m_TotalStandardConditionInteger;// 标况总量整数
+    uint32_t        m_TotalStandardConditionDecimal;// 标况总量小数
+    uint8_t         m_CorrectionAlgorithm;          // 修正算法
+    uint8_t         m_Padding2;                     // 填充位
+    uint16_t        m_Temperature;                  // 温度
+    uint32_t        m_Pressure;                     // 压力
+    uint32_t        m_WorkingConditionFlow;         // 工况流速
+    uint32_t        m_StandardConditionFlow;        // 标况流速
+    uint32_t        m_WorkingConditionCompressionFactor;// 工况压缩因子
+    uint32_t        m_StandardConditionCompressionFactor;// 标况压缩因子
+    uint32_t        m_CorrectionFactor;             // 修正系数
+    uint32_t        m_BalanceInteger;               // 剩余金额整数
+    uint32_t        m_BalanceDecimal;               // 剩余金额小数
+    uint32_t        m_RemainingGasInteger;          // 剩余气量整数
+    uint32_t        m_RemainingGasDecimal;          // 剩余气量小数
+    uint8_t         m_HardwareVersion[4];           // 硬件版本号
+    uint8_t         m_SoftwareVersion[4];           // 固件版本号
+    uint32_t        m_WorkingStatusCol1;            // 工作状态集合1
+    uint32_t        m_WorkingStatusCol2;            // 工作状态集合2
+    uint16_t        m_InnerLiBatteyPower;           // 内部锂电池电量
+    uint16_t        m_ValveBatteryPower;            // 阀门电池电量
+    uint16_t        m_CumulativeReportTimes;        // 表具累计上报次数
+    uint16_t        m_ModuleRSPR;                   // 信号质量
+    uint16_t        m_ModuleSNR;                    // 信噪比
+    uint16_t        m_ModulePhysicalCellId;         // 物理小区标识
+    uint32_t        m_MainBaseStationNumber;        // 主基站编号
+    uint16_t        m_ModuleEARFCN;                 // 频点
+    uint8_t         m_NerworkFailReason;            // 网络传输失败原因
+    uint8_t         m_ModuleECL;                    // 覆盖等级
+    uint8_t         m_ModuleCellId[6];              // 基站小区标识
+    uint16_t        m_Padding3;                     // 填充位
+}QIANWEI_PROTOCOL_CORRECTOR_REPORT_DATA;
+
+
+#pragma pack()
 
 #endif // QIANWEI_H

@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "xinshengparse.h"
 #include "fengxianparse.h"
+#include "qianweiparse.h"
 #include <QDebug>
 
 
@@ -56,6 +57,14 @@ MainWindow::MainWindow(QWidget *parent) :
           fx.StartParse();
           ui->outputText->append(fx.m_parsedHead);
           ui->outputText->append(fx.m_parsedBody);
+      }
+      else if (ui->comboBox->currentText() == "第三方协议")
+      {
+          QianWeiParse qw(inputString);
+
+          qw.StartParse();
+          ui->outputText->append(qw.m_parsedHead);
+          ui->outputText->append(qw.m_parsedBody);
       }
 
       qDebug() << ui->comboBox->currentText();
