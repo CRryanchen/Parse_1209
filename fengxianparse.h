@@ -72,6 +72,7 @@ private:
     uint32_t u32Convert(uint32_t val);
     uint16_t u16Convert(uint16_t val);
     QByteArray GetParseKey(void);
+    QString CheckSafeFunc(int16_t SafeCode);
 
 signals:
 

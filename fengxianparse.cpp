@@ -7,7 +7,7 @@
 template<typename T>
 QString FengXianParse::FormatOutput(const QString &str, const T &data, bool endline)
 {
-    if (str.size() >= 6)
+    if (str.toLocal8Bit().size() > 12 || str.toLocal8Bit().size() == 0)
     {
         return QString().sprintf("%s\t：%0*x", str.toUtf8().data(), sizeof(data) * 2, data) + QString(endline ? "\n" : "");
     }
@@ -19,8 +19,7 @@ QString FengXianParse::FormatOutput(const QString &str, const T &data, bool endl
 
 QString FengXianParse::FormatOutput(const QString &str, const uint8_t &year, const uint8_t &month, const uint8_t &day, const uint8_t &hour, const uint8_t &min, const uint8_t &sec)
 {
-    if (str.size() >= 6)
-
+    if (str.toLocal8Bit().size() > 12)
     {
         return QString().sprintf("%s\t：%0*x/%0*x/%0*x %0*x:%0*x:%0*x\n", str.toUtf8().data(), sizeof(year) * 2, year, sizeof(month) * 2, month, sizeof(day) * 2, day, sizeof(hour) * 2, hour, sizeof(min) * 2, min, sizeof(sec) * 2, sec);
     }
@@ -70,6 +69,71 @@ QByteArray FengXianParse::GetParseKey()
             return this->m_latestKey;
         }
     }
+}
+
+QString FengXianParse::CheckSafeFunc(int16_t SafeCode)
+{
+    QString res = "";
+
+    if (SafeCode & (0x01 << 0))
+    {
+        res += QString("泄漏上报 ");
+    }
+    if (SafeCode & (0x01 << 1))
+    {
+        res += QString("泄漏关阀 ");
+    }
+    if (SafeCode & (0x01 << 2))
+    {
+        res += QString("磁干扰上报 ");
+    }
+    if (SafeCode & (0x01 << 3))
+    {
+        res += QString("磁干扰关阀 ");
+    }
+    if (SafeCode & (0x01 << 4))
+    {
+        res += QString("大流上报 ");
+    }
+    if (SafeCode & (0x01 << 5))
+    {
+        res += QString("大流关阀 ");
+    }
+    if (SafeCode & (0x01 << 6))
+    {
+        res += QString("小流上报 ");
+    }
+    if (SafeCode & (0x01 << 7))
+    {
+        res += QString("小流关阀 ");
+    }
+    if (SafeCode & (0x01 << 8))
+    {
+        res += QString("倾斜上报 ");
+    }
+    if (SafeCode & (0x01 << 9))
+    {
+        res += QString("倾斜关阀 ");
+    }
+    if (SafeCode & (0x01 << 10))
+    {
+        res += QString("拆表上报 ");
+    }
+    if (SafeCode & (0x01 << 11))
+    {
+        res += QString("拆表关阀 ");
+    }
+    if (SafeCode & (0x01 << 12))
+    {
+        res += QString("反向安装上报 ");
+    }
+    if (SafeCode & (0x01 << 13))
+    {
+        res += QString("反向安装关阀 ");
+    }
+
+
+    return res;
 }
 
 
@@ -259,13 +323,19 @@ void FengXianParse::ParseBusinessReportBody()
     // 将解密后的数据赋值给body，长度需要减去补码的长度
     memcpy((uint8_t *)&body, pArray, this->m_frameBody.size());
 
-    temp += FormatOutput<uint16_t>("连续通讯失败关阀天数", u16Convert(body.CommFailDay));
+    temp += FormatOutput<uint16_t>("连续通讯失败关阀天数", u16Convert(body.CommFailDay), false) +  QString().sprintf("(%d)\n", u16Convert(body.CommFailDay));
     temp += FormatOutput<uint8_t>("连续通讯失败关阀时间", body.CommFailHour);
     temp += FormatOutput<uint16_t>("抄表冻结时间", u16Convert(body.ReadStatTime.m_time));
     temp += FormatOutput<uint16_t>("安全功能码", u16Convert(body.SafeFunCode.SafeCode));
+    temp += "安全功能码对应\t：(" + this->CheckSafeFunc(u16Convert(body.SafeFunCode.SafeCode)) + ")\n" ;
     temp += FormatOutput<uint16_t>("温度", u16Convert(body.Temperature));
     temp += FormatOutput<uint16_t>("压力", u16Convert(body.Pressure));
-//    temp += FormatOutput<uint8_t>("工况累积量");
+    temp += QString("工况累积量\t\t：");
+//    for (int i = 0; i < 5; i++)
+//    {
+//        temp += QString().sprintf("%02x", body.CurrentTotalGas[i]);
+//    }
+//    temp += FormatOutput<uint64_t>("工况累积量");
 //    temp += FormatOutput<uint8_t>("当前累计量", body.CurrentTotalGas);
     for (int i = 0; i < 30; i++)
     {

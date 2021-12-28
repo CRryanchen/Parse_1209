@@ -38,6 +38,7 @@ static const quint16 crc16Table[] =
     0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
 };
 
+
 template<typename T>
 QString QianWeiParse::FormatOutput(const QString &str, const T &data, bool endline = true)
 {
@@ -51,6 +52,23 @@ QString QianWeiParse::FormatOutput(const QString &str, const T &data, bool endli
     }
 }
 
+
+
+/**
+ * @brief       格式化输出时间信息.
+ * @details     格式化输出时间信息.
+ * @param[in]   str 打印信息描述.
+ * @param[in]   time 时间数据的起始地址.
+ * @return      返回组装好的QString类型的数据.
+ * @par 标识符
+ * 		保留
+ * @par 其它
+ * 		无
+ * @par 修改日志
+ * 		Ryan于2021-12-28创建
+ * @note 注解
+ *      time为时间数组的起始地址,共6个字节.
+ */
 QString FormatOutputTime(const QString &str, const uint8_t *time)
 {
     if (str.toLocal8Bit().size()  >= 12)
@@ -64,6 +82,22 @@ QString FormatOutputTime(const QString &str, const uint8_t *time)
 
 }
 
+
+/**
+ * @brief       格式化输出版本信息.
+ * @details     格式化输出版本信息.
+ * @param[in]   str 打印信息描述.
+ * @param[in]   version 版本数据的起始地址.
+ * @return      返回组装好的QString类型的数据.
+ * @par 标识符
+ * 		保留
+ * @par 其它
+ * 		无
+ * @par 修改日志
+ * 		Ryan于2021-12-28创建
+ * @note 注解
+ *      version为版本数组的起始地址,共4个字节.
+ */
 QString FormatOutputVersion(const QString &str, const uint8_t *version)
 {
     if (str.toLocal8Bit().size() >= 12)
@@ -756,10 +790,10 @@ void QianWeiParse::ParseCorrectorRechargeData()
     }
 
 //    temp += QString.sprintf("保留位\t：%02x%02x%02x\n", body.m_reserve[0], body.m_reserve[1], body.m_reserve[2]);
-    temp += FormatOutput<uint32_t>("充值总购金额整数", body.m_RechargeTotalPurchaseAmountInt);
-    temp += FormatOutput<uint32_t>("充值总购金额小数", body.m_RechargeTotalPurchaseAmountDec);
-    temp += FormatOutput<uint32_t>("充值总购气量整数", body.m_RechargeTotalGasPurchaseInt);
-    temp += FormatOutput<uint32_t>("充值总购气量小数", body.m_RechargeTotalGasPurchaseDec);
+    temp += FormatOutput<uint32_t>("充值总购金额整数", body.m_RechargeTotalPurchaseAmountInt, false) + QString().sprintf("(%d)\n", body.m_RechargeTotalPurchaseAmountInt);
+    temp += FormatOutput<uint32_t>("充值总购金额小数", body.m_RechargeTotalPurchaseAmountDec, false) + QString().sprintf("(%d)\n", body.m_RechargeTotalPurchaseAmountDec);
+    temp += FormatOutput<uint32_t>("充值总购气量整数", body.m_RechargeTotalGasPurchaseInt, false) + QString().sprintf("(%d)\n", body.m_RechargeTotalGasPurchaseInt);
+    temp += FormatOutput<uint32_t>("充值总购气量小数", body.m_RechargeTotalGasPurchaseDec, false) + QString().sprintf("(%d)\n", body.m_RechargeTotalGasPurchaseDec);
 
     this->m_parsedBody += temp;
 }
