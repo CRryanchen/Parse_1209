@@ -73,6 +73,9 @@ private:
     uint16_t u16Convert(uint16_t val);
     QByteArray GetParseKey(void);
     QString CheckSafeFunc(int16_t SafeCode);
+    QString CheckRunningStatus(int16_t runningStatus);
+    QString CheckValveStatus(int16_t valveStatus);
+    QString CheckReportReason(int16_t reportReason);
 
 signals:
 

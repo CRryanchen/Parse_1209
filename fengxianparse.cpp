@@ -4,6 +4,12 @@
 #define FENGXIAN_PROTOCOL_FRAME_STARTCHAR           0X69            // 新圣协议起始符
 #define FENGXIAN_PROTOCOL_FRAME_ENDCHAR             0X17            // 新圣协议结束符
 
+typedef union
+{
+    uint8_t  buf[8];
+    uint64_t temp;
+}Convert;
+
 template<typename T>
 QString FengXianParse::FormatOutput(const QString &str, const T &data, bool endline)
 {
@@ -132,6 +138,190 @@ QString FengXianParse::CheckSafeFunc(int16_t SafeCode)
         res += QString("反向安装关阀 ");
     }
 
+
+    return res;
+}
+
+QString FengXianParse::CheckRunningStatus(int16_t runningStatus)
+{
+    QString res = "";
+
+    if (runningStatus & (0x01 << 0))
+    {
+        res += QString("采样失败 ");
+    }
+    if (runningStatus & (0x01 << 1))
+    {
+        res += QString("泄漏 ");
+    }
+    if (runningStatus & (0x01 << 2))
+    {
+        res += QString("磁干扰 ");
+    }
+    if (runningStatus & (0x01 << 3))
+    {
+        res += QString("大流 ");
+    }
+    if (runningStatus & (0x01 << 4))
+    {
+        res += QString("小流 ");
+    }
+    if (runningStatus & (0x01 << 5))
+    {
+        res += QString("电流不足 ");
+    }
+    if (runningStatus & (0x01 << 6))
+    {
+        res += QString("低电量 ");
+    }
+    if (runningStatus & (0x01 << 7))
+    {
+        res += QString("倾斜 ");
+    }
+    if (runningStatus & (0x01 << 8))
+    {
+        res += QString("拆表 ");
+    }
+    if (runningStatus & (0x01 << 9))
+    {
+        res += QString("反向安装 ");
+    }
+    if (runningStatus & (0x01 << 10))
+    {
+        res += QString("恒流 ");
+    }
+    if (runningStatus & (0x01 << 11))
+    {
+        res += QString("连续不用气 ");
+    }
+    if (runningStatus & (0x01 << 12))
+    {
+        res += QString("压力过低 ");
+    }
+
+    return res;
+}
+
+QString FengXianParse::CheckValveStatus(int16_t valveStatus)
+{
+    QString res = "";
+
+    if (valveStatus & (0x01 << 0))
+    {
+        res += QString("连续通讯失败 ");
+    }
+    if (valveStatus & (0x01 << 1))
+    {
+        res += QString("泄漏 ");
+    }
+    if (valveStatus & (0x01 << 2))
+    {
+        res += QString("磁干扰 ");
+    }
+    if (valveStatus & (0x01 << 3))
+    {
+        res += QString("大流 ");
+    }
+    if (valveStatus & (0x01 << 4))
+    {
+        res += QString("小流 ");
+    }
+    if (valveStatus & (0x01 << 5))
+    {
+        res += QString("电流不足 ");
+    }
+    if (valveStatus & (0x01 << 6))
+    {
+        res += QString("无线关阀 ");
+    }
+    if (valveStatus & (0x01 << 7))
+    {
+        res += QString("倾斜 ");
+    }
+    if (valveStatus & (0x01 << 8))
+    {
+        res += QString("拆表 ");
+    }
+    if (valveStatus & (0x01 << 9))
+    {
+        res += QString("反向安装 ");
+    }
+    if (valveStatus & (0x01 << 10))
+    {
+        res += QString("恒流关阀 ");
+    }
+    if (valveStatus & (0x01 << 11))
+    {
+        res += QString("连续不用气关阀 ");
+    }
+    if (valveStatus & (0x01 << 12))
+    {
+        res += QString("压力过低关阀 ");
+    }
+
+    return res;
+}
+
+QString FengXianParse::CheckReportReason(int16_t reportReason)
+{
+    QString res = "";
+
+    if (reportReason & (0x01 << 0))
+    {
+        res += QString("按键 ");
+    }
+    else
+    {
+        res += QString("自动 ");
+    }
+    if (reportReason & (0x01 << 1))
+    {
+        res += QString("泄漏 ");
+    }
+    if (reportReason & (0x01 << 2))
+    {
+        res += QString("磁干扰 ");
+    }
+    if (reportReason & (0x01 << 3))
+    {
+        res += QString("大流 ");
+    }
+    if (reportReason & (0x01 << 4))
+    {
+        res += QString("小流 ");
+    }
+    if (reportReason & (0x01 << 5))
+    {
+        res += QString("定时上报 ");
+    }
+    if (reportReason & (0x01 << 6))
+    {
+        res += QString("倾斜 ");
+    }
+    if (reportReason & (0x01 << 7))
+    {
+        res += QString("其他 ");
+    }
+    if (reportReason & (0x01 << 8))
+    {
+        res += QString("拆表 ");
+    }
+    if (reportReason & (0x01 << 9))
+    {
+        res += QString("反向安装 ");
+    }
+    if (reportReason & (0x01 << 10))
+    {
+        res += QString("恒流关阀 ");
+    }
+    if (reportReason & (0x01 << 11))
+    {
+        res += QString("连续不用气关阀 ");
+    }
+    if (reportReason & (0x01 << 12))
+    {
+        res += QString("压力过低关阀 ");
+    }
 
     return res;
 }
@@ -318,6 +508,7 @@ void FengXianParse::ParseBusinessReportBody()
     FENGXIAN_PROTOCOL_BUSINESS_REPORT_DATA body;
     QByteArray decodedText = decrypt(this->m_frameBody, this->GetParseKey());
     uint8_t *pArray = NULL;
+    Convert convert;
 
     pArray = (uint8_t *)decodedText.data();
     // 将解密后的数据赋值给body，长度需要减去补码的长度
@@ -330,36 +521,101 @@ void FengXianParse::ParseBusinessReportBody()
     temp += "安全功能码对应\t：(" + this->CheckSafeFunc(u16Convert(body.SafeFunCode.SafeCode)) + ")\n" ;
     temp += FormatOutput<uint16_t>("温度", u16Convert(body.Temperature));
     temp += FormatOutput<uint16_t>("压力", u16Convert(body.Pressure));
+
+    // 计算工况累积量
+    convert.temp = 0;
+    for (int i = 0; i < 5; i++)
+    {
+        convert.buf[4 - i] = body.WorkTotalGas[i];
+    }
     temp += QString("工况累积量\t\t：");
-//    for (int i = 0; i < 5; i++)
-//    {
-//        temp += QString().sprintf("%02x", body.CurrentTotalGas[i]);
-//    }
-//    temp += FormatOutput<uint64_t>("工况累积量");
-//    temp += FormatOutput<uint8_t>("当前累计量", body.CurrentTotalGas);
+    for (int i = 0; i < 5; i++)
+    {
+        temp += QString().sprintf("%02x", body.WorkTotalGas[i]);
+    }
+    temp += QString().sprintf("(%d)\n", convert.temp);
+
+    // 计算当前累积量
+    convert.temp = 0;
+    for (int i = 0; i < 5; i++)
+    {
+        convert.buf[4 - i] = body.CurrentTotalGas[i];
+    }
+    temp += QString("当前累积量\t\t：");
+    for (int i = 0; i < 5; i++)
+    {
+        temp += QString().sprintf("%02x", body.CurrentTotalGas[i]);
+    }
+    temp += QString().sprintf("(%d)\n", convert.temp);
+
     for (int i = 0; i < 30; i++)
     {
         temp += QString().sprintf("%d天之前的累积量", i + 1) + FormatOutput<uint32_t>("", u32Convert(body.LastThirtyDayGas[i]));
     }
 
-    temp += FormatOutput<uint16_t>("表具运行状态", u16Convert(body.MeterState.Stat_Value));
+    temp += FormatOutput<uint16_t>("运行状态", u16Convert(body.MeterState.Stat_Value));
+    if (u16Convert(body.MeterState.Stat_Value) != 0)
+    {
+        temp += "运行状态对应\t\t：(" + this->CheckRunningStatus(u16Convert(body.MeterState.Stat_Value)) + ")\n" ;
+    }
+
     temp += FormatOutput<uint16_t>("阀门状态", u16Convert(body.ValveNum.Valve_Value));
-    temp += FormatOutput<uint8_t>("电压值", body.VoltageValue);
-    temp += FormatOutput<uint8_t>("供电方式", body.SupplyMode);
+    if (u16Convert(body.ValveNum.Valve_Value) != 0)
+    {
+        temp += "阀门状态对应\t\t：(" + this->CheckValveStatus(u16Convert(body.ValveNum.Valve_Value)) + ")\n" ;
+    }
+    temp += FormatOutput<uint8_t>("电压值", body.VoltageValue, false) + QString().sprintf("(%d.%dV)\n", body.VoltageValue / 10, body.VoltageValue % 10);
+    temp += FormatOutput<uint8_t>("供电方式", body.SupplyMode, false);
+    switch (body.SupplyMode)
+    {
+    case 0x00:
+        temp += "(碱电池)\n";
+        break;
+
+    case 0x01:
+        temp += "(锂电池)\n";
+        break;
+
+    case 0x02:
+        temp += "(市电)\n";
+        break;
+
+    default:
+        temp += "(未定义)\n";
+        break;
+    }
     temp += FormatOutput<uint8_t>("信号强度", body.Rssi);
     temp += FormatOutput<uint16_t>("信噪比", u16Convert(body.Snr));
     temp += FormatOutput<uint8_t>("覆盖等级", body.Cover_Level);
     temp += FormatOutput<uint8_t>("基站编号", body.Cell_id[0]);
     temp += FormatOutput<uint16_t>("定时通讯开始时间", u16Convert(body.TimeCommStart.m_time));
     temp += FormatOutput<uint16_t>("定时通讯结束时间", u16Convert(body.TimeCommEnd.m_time));
-    temp += FormatOutput<uint16_t>("定时通讯连接间隔", u16Convert(body.TimeCommInterval));
+    temp += FormatOutput<uint16_t>("定时通讯连接间隔", u16Convert(body.TimeCommInterval), false) + QString().sprintf("(%dmin, %dsec)\n", u16Convert(body.TimeCommInterval), 60 *u16Convert(body.TimeCommInterval));
     temp += FormatOutput<uint8_t>("通讯超时时间", body.CommTimeOut);
     temp += FormatOutput<uint8_t>("重连次数", body.ReconnectNum);
     temp += FormatOutput<uint8_t>("重连延迟时间", body.ReconnectTime);
     temp += FormatOutput<uint8_t>("程序版本号", body.SoftVer);
     temp += FormatOutput<uint16_t>("上报原因", u16Convert(body.ReportWay.Upload_Way));
+    if (u16Convert(body.ReportWay.Upload_Way) != 0)
+    {
+        temp += "上报原因对应\t\t：(" + this->CheckReportReason(u16Convert(body.ReportWay.Upload_Way)) + ")\n" ;
+    }
     temp += FormatOutput("表内时间", body.MeterTime.year, body.MeterTime.month, body.MeterTime.day, body.MeterTime.hour, body.MeterTime.minute, body.MeterTime.second);
-    temp += FormatOutput<uint8_t>("工作模式", body.WorkMode);
+    temp += FormatOutput<uint8_t>("工作模式", body.WorkMode, false);
+    switch (body.WorkMode)
+    {
+    case 0x00:
+        temp += "(工厂模式)\n";
+        break;
+
+    case 0x01:
+        temp += "(用户模式)\n";
+        break;
+
+    default:
+        temp += "(未定义)\n";
+        break;
+    }
 
     this->m_parsedBody = temp;
 }
